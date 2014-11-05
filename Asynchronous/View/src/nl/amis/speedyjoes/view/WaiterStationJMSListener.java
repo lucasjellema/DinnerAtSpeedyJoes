@@ -12,6 +12,7 @@ import javax.jms.Message;
 
 import javax.jms.MessageListener;
 
+import nl.amis.speedyjoes.common.log.ConversationLogger;
 import nl.amis.speedyjoes.view.push.JoesMealItemReadyEvent;
 
 import nl.amis.speedyjoes.view.push.MealItemReadyEvent;
@@ -31,17 +32,20 @@ public class WaiterStationJMSListener implements MessageListener{
     public void onMessage(Message message) {
             try {
                 // In JMS 1.1:
-                          MapMessage mapMessage = (MapMessage)message;
+                MapMessage mapMessage = (MapMessage)message;
                 System.out.println("JMS CONSUMER!!!! Message received: " + mapMessage);
                 System.out.println("Menu item"+mapMessage.getString("menuItem"));
                 
+                String trace = mapMessage.getString("trace");
+                ConversationLogger logger = new ConversationLogger(trace);
+                logger.enterLog("Waiters Station", logger.getHighestLevel()+1, "Received cooked meal item, passed on to a waiter", 400);
                 MealItemReadyEvent event = new MealItemReadyEvent();
                 event.setMenuItem(mapMessage.getString("menuItem"));
                 event.setAppetizerOrMain(mapMessage.getString("AorM"));
                 event.setTableNumber(mapMessage.getString("tableNumber"));
                 event.setPrice(mapMessage.getFloat("price"));
                 event.setDuration(mapMessage.getInt("duration"));
-                
+                event.setJsonTrace(logger.toJSON().toString());                
                 mealItemReadyEvent.fire(event);        
 
                 

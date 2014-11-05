@@ -17,7 +17,15 @@ public class MealItemReadyEvent {
     private String appetizer;
     private String main;
     private String tableNumber;
-    
+    private String jsonTrace;
+
+    public void setJsonTrace(String jsonTrace) {
+        this.jsonTrace = jsonTrace;
+    }
+
+    public String getJsonTrace() {
+        return jsonTrace;
+    }
     private Integer duration;
 
     public void setDuration(Integer duration) {

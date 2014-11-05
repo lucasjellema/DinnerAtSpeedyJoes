@@ -33,9 +33,9 @@ public class MealOrderHandlerBean implements MealOrderHandler, MealOrderHandlerL
     @Override
     public void handleMealOrder(Meal meal, ConversationLogger conversationLogger, int level) {
         sleep(700);
-        conversationLogger.enterLog("Mid Office", level, "Processed Meal Order, passed on to Kitched", 700);
+        conversationLogger.enterLog("Mid Office", level, "Processed Meal Order, passed on to Kitchen", 700);
         try {
-        haveKitchenPrepareMeal(meal, conversationLogger, level + 1);
+           haveKitchenPrepareMeal(meal, conversationLogger, level + 1);
         }
         catch (Exception e) {
             conversationLogger.enterLog("Mid Office", level, "Exception: "+e.getMessage(),
@@ -43,10 +43,6 @@ public class MealOrderHandlerBean implements MealOrderHandler, MealOrderHandlerL
             
         }
         //        String result="Your order was received and processed; tableNumber="+tableNumber+" and your order total is € 131,21"+ doThis() ;
-        // TODO Implement this method
-        sleep(900);
-        conversationLogger.enterLog("Mid Office", level, "Fetched Meal from Kitchen and Handed Off to Waiters Station",
-                                    900);
         return;
     }
 
@@ -83,7 +79,10 @@ public class MealOrderHandlerBean implements MealOrderHandler, MealOrderHandlerL
             // execute insert SQL stetement
             preparedStatement.executeUpdate();
 
-result="jobs submitted";
+            result="jobs submitted";
+            
+            
+            // in the asynchronous case, the following is very optimistic (if not pointless)
             // fetch the prepared dishes
             PreparedStatement sql =
                 conn.prepareStatement("SELECT menu_item, extract( second from (end_time - start_time)) as preparation_duration, price , upper(APPETIZER_OR_MAIN) as aOrM " +
@@ -111,7 +110,7 @@ result="jobs submitted";
                     meal.addToCheckTotal(((BigDecimal)price).floatValue());
                 }
             }//while
-result="done set processing";
+            result="done set processing";
         }
 
 

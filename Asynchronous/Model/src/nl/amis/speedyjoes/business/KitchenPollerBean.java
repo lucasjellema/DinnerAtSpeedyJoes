@@ -47,6 +47,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import nl.amis.speedyjoes.common.Meal;
+import nl.amis.speedyjoes.common.MealOrder;
 import nl.amis.speedyjoes.common.log.ConversationLogger;
 
 import weblogic.jms.client.JMSContext;
@@ -101,8 +102,10 @@ public class KitchenPollerBean implements TimedObject {
 
             ResultSet set = findReadyUndeliveredMealItemsStatement.executeQuery();
             result = "queried";
+            ConversationLogger conversationLogger = new ConversationLogger();
 
             while (set.next()) {
+
                 result = "query result found";
                 String menuItem = set.getString("menu_item");
                 String tableNumber = set.getString("table_number");
@@ -110,6 +113,7 @@ public class KitchenPollerBean implements TimedObject {
                 Object price = set.getObject("price");
                 Object duration = set.getObject("preparation_duration");
 
+                conversationLogger.enterLog("Kitchen", 1, "Cooked Meal Item", Math.round(1000*((BigDecimal)duration).floatValue()),-1);
                 logger.log(Level.SEVERE, "Found meal item " + menuItem + " to deliver to table " + tableNumber);
 
                 preparedStatement.setString(1, tableNumber);
@@ -118,16 +122,10 @@ public class KitchenPollerBean implements TimedObject {
                 preparedStatement.executeUpdate();
                 logger.log(Level.SEVERE, "Fetched meal item and updated to delivered");
 
+                sleep(200);
+                conversationLogger.enterLog("Mid Office", 2, "Fetched Meal from Kitchen", 200);
 
-                publishMealItemToJMS(menuItem, tableNumber, appetizerOrMain, ((BigDecimal)price).floatValue(), Math.round(1000*((BigDecimal)duration).floatValue()));
-
-                //conversationLogger.enterLog("Kitchen", level, "Prepared Appetizer", Math.round(1000*((BigDecimal)duration).floatValue()));
-                //meal.setAppetizer("Saucer with " + menuItem );
-                //meal.addToCheckTotal(((BigDecimal)price).floatValue());
-                //PUBLISH MEAL ITEM on JMS
-                // use http://piotrnowicki.com/2013/05/java-ee-7-jms-2-0-with-glassfish-v4/
-
-
+                publishMealItemToJMS(menuItem, tableNumber, appetizerOrMain, ((BigDecimal)price).floatValue(), Math.round(1000*((BigDecimal)duration).floatValue()), conversationLogger,3);
 
             } //while
             result = "done set processing";
@@ -162,7 +160,7 @@ public class KitchenPollerBean implements TimedObject {
     private TextMessage msg;
 
 
-    private void publishMealItemToJMS(String menuItem, String tableNumber, String aOrM, float price, int duration) throws javax.jms.JMSException {
+    private void publishMealItemToJMS(String menuItem, String tableNumber, String aOrM, float price, int duration, ConversationLogger conversationLogger, int level) throws javax.jms.JMSException {
         //JMS publication
         try {
 
@@ -192,9 +190,9 @@ public class KitchenPollerBean implements TimedObject {
                 e.printStackTrace();
 
             }
-
+            
             String message = "Found meal item " + menuItem + " to deliver to table " + tableNumber;
-            //       javax.jms.Connection connection = connectionFactory.createConnection();
+                        //       javax.jms.Connection connection = connectionFactory.createConnection();
             qcon = connectionFactory.createQueueConnection();
             qsession = qcon.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
             //qsender = qsession.createSender((javax.jms.Queue) dest);
@@ -208,6 +206,12 @@ public class KitchenPollerBean implements TimedObject {
             mm.setString("AorM", aOrM);
             mm.setInt("duration", duration);
             mm.setFloat("price", price);
+
+
+            sleep(900);
+            conversationLogger.enterLog("Mid Office", level, "Handed Cooked Meal Item Off to Waiters Station",
+                                        900);
+            mm.setString("trace", conversationLogger.toJSON().toString());
             MessageProducer producer = qsession.createProducer(dest);
             producer.send(mm);
         } finally {
@@ -220,5 +224,12 @@ public class KitchenPollerBean implements TimedObject {
         }
     }
 
+    private void sleep(int delayInMilliSeconds) {
+        try {
+            Thread.sleep((delayInMilliSeconds)); //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
 }

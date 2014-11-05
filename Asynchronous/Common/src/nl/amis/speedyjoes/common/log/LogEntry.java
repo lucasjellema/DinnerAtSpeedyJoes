@@ -24,6 +24,10 @@ public class LogEntry {
         this.durationInMiliSeconds = durationInMiliSeconds;
     }
 
+    public void setThreadId(long threadId) {
+        this.threadId = threadId;
+    }
+
     public String getComponent() {
         return component;
     }

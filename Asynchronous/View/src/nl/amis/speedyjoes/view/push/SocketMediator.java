@@ -23,6 +23,8 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 
+import nl.amis.speedyjoes.common.log.ConversationLogger;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -82,12 +84,16 @@ public class SocketMediator {
  
     public void onMailItemReadyEvent(@Observes @JoesMealItemReadyEvent MealItemReadyEvent event) {
         System.out.println("Meal Item Ready Event observed by SocketMediator " + event.getAppetizer()+" for table "+event.getTableNumber());
+        ConversationLogger logger = new ConversationLogger(event.getJsonTrace());
+        logger.enterLog("Waiter", logger.getHighestLevel()+1, "Taken cooked meal item to table ", 500);
+
         String json="{}";
         try {
             JSONObject r = new JSONObject().put("appetizerOrMain", event.getAppetizerOrMain());
             r.put("menuItem", event.getMenuItem());
             r.put("price", event.getPrice());
             r.put("duration", event.getDuration());
+            r.put("trace", logger.toJSON());
              json = r.toString();
             System.out.println("response=" + r);
         } catch (JSONException e) {

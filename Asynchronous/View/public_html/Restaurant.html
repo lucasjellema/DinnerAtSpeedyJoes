@@ -11,16 +11,11 @@
           //When readyState is 4 then get the server output
           xmlhttp.onreadystatechange = function() {
              if (xmlhttp.readyState == 4) {
-               if (xmlhttp.status == 200)
-               {
-                 // document.getElementById("message").innerHTML = xmlhttp.responseText;
-                  var jsonResponse = JSON.parse(xmlhttp.responseText);
-                //  document.getElementById("message").innerHTML = jsonResponse.message;               
+               if (xmlhttp.status == 200) {
                   document.getElementById("message").innerHTML = "";        
                   handleMealItemDelivery( xmlhttp.responseText);
                }
-               else
-               {
+               else {
                  alert('Something is wrong !!');
                }
             }
@@ -34,62 +29,65 @@
                   , "tableNumber" : tableNumber};
           ;
           var mealJSON = JSON.stringify(meal);
-          // send order over websocket
-          sendText(mealJSON);      
           xmlhttp.send(mealJSON);
           document.getElementById("message").innerHTML = "Your meal order has been placed:"+mealJSON;        
+
+          // send order over websocket
+          // to let tablenumber know (to socket mediator)
+          sendText(mealJSON);      
+
         } //ajaxAsyncRequest
         
         function waiter(form) {
           ajaxAsyncRequest('ajaxordermeal');            
         }
         
-        
-function handleMealItemDelivery( json) {
-   var mealDiv = document.getElementById("mealDiv");
-//   mealDiv.innerHTML += json + "<br>";
-   var mealItem =  JSON.parse(json);
-   dinner.push({ "menuItem":mealItem.menuItem, "price":mealItem.price});
-   var arrayLength = dinner.length;
-   mealDiv.innerHTML = "Dinner is being served... <br/>"
-   var checkTotal = 0;
-   for (var i = 0; i < arrayLength; i++) {
-     mealDiv.innerHTML += dinner[i].menuItem+" ( \u20AC "+ dinner[i].price+ ") <br>";
-     checkTotal += dinner[i].price;
-   }//for
-     mealDiv.innerHTML += "<br/>(running)Check Total: "+" ( \u20AC "+ checkTotal+ ") <br>";
-   
-}
 
-var dinner = [];
+    var dinner = [];
 
     </script>
     <script type="text/javascript" src="websocket.js"></script>
+    <script type="text/javascript" src="speedyjoes.js"></script>
     </head>
     <body>
      <h1>Speedy Joe's Restaurant</h1>
        <div id="output"></div> 
         <div id="message">Please place your order</div>
         <br/>
-        <br/>
-        <h3>Welcome at Speedy Joe's</h3>
+        <table>
+        <tr>
+        <td>
+        <img src="images/restaurantTable.png"/>
         <div id="mealDiv">Dinner is being served...</div>
         <br/>
         <br/>
         <form name="mealOrderForm" >
-            Table Number:
-            <input type="text" name="tableNumber" id="tableNumber"/>
-            <br/>
-            Drink:
+        <table>
+        <tr>
+        <td>Table Number:</td>
+            <td><input type="text" name="tableNumber" id="tableNumber"/></td>
+            </tr>
+            <tr>
+            <td>
+            Drink:</td><td>
             <input type="text" name="drink" id="drink"/>
-            <br/>
-            Appetizer:
+            </td></tr>
+            <tr><td>
+            Appetizer:</td><td>
             <input type="text" name="appetizer" id="appetizer"/>
-            <br/>
+            </td></tr><tr><td>
             Main:
+            </td><td>
             <input type="text" name="main" id="main"/>
-            <br/>
+            </td></tr></table>
             <input type="button" value="Place Order" onclick="javascript:waiter('a');"/>
         </form>
+</td>
+        <td id="trace">
+Execution Trace<br/><br/>    
+        
+        </td>
+        </tr>
+        </table>
     </body>
 </html>

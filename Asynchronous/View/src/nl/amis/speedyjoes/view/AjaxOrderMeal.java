@@ -66,18 +66,10 @@ public class AjaxOrderMeal extends HttpServlet {
         JSONObject jObj;
         try {
             jObj = new JSONObject(mealJSON);
-            Iterator it = jObj.keys(); //gets all the keys
-
-            while (it.hasNext()) {
-                String key = (String) it.next(); // get key
-                Object o = jObj.get(key); // get value
-                System.out.println(key + " : " + o); // print the key and value
-                result = result + key + " : " + o;
                 tableNumber = (String) jObj.get("tableNumber");
                 drink = (String) ((JSONObject) jObj.get("meal")).get("drink");
                 main = (String) ((JSONObject) jObj.get("meal")).get("main");
                 appetizer = (String) ((JSONObject) jObj.get("meal")).get("appetizer");
-            }
         } catch (JSONException e) {
             result = result + e.getMessage();
         }
@@ -103,6 +95,8 @@ public class AjaxOrderMeal extends HttpServlet {
         }
         conversationLogger.enterLog("Waiters Station", 1, "Handed off meal order to mid office", 400);
 
+        conversationLogger.enterLog("Waiter", 1, "Taken drink to table ", 500);
+
 
         result = "so far so good;drink  " + meal.getDrink() + " and main " + meal.getMain();
         ;
@@ -112,6 +106,8 @@ public class AjaxOrderMeal extends HttpServlet {
             r.put("price", meal.getCheckTotal());
             r.put("menuItem", meal.getDrink());
             r.put("duration", (new Long((new Date().getTime() - startTime.getTime()))).intValue());
+            JSONObject trace = conversationLogger.toJSON(); 
+            r.put("trace",trace );
              json = r.toString();
             System.out.println("response=" + r);
         } catch (JSONException e) {
