@@ -4,20 +4,13 @@ import nl.amis.speedyjoes.common.MealOrder;
 
 public class MealItemReadyEvent {
 
-    public void setTableNumber(String tableNumber) {
-        this.tableNumber = tableNumber;
-    }
-
-    public String getTableNumber() {
-        return tableNumber;
-    }
     private String appetizerOrMain;
     private String menuItem;
-
     private String appetizer;
     private String main;
     private String tableNumber;
     private String jsonTrace;
+    private Integer duration;
 
     public void setJsonTrace(String jsonTrace) {
         this.jsonTrace = jsonTrace;
@@ -26,7 +19,14 @@ public class MealItemReadyEvent {
     public String getJsonTrace() {
         return jsonTrace;
     }
-    private Integer duration;
+
+    public void setTableNumber(String tableNumber) {
+        this.tableNumber = tableNumber;
+    }
+
+    public String getTableNumber() {
+        return tableNumber;
+    }
 
     public void setDuration(Integer duration) {
         this.duration = duration;
@@ -80,7 +80,7 @@ public class MealItemReadyEvent {
         return main;
     }
 
-    
+
     public void setCheckTotal(Float checkTotal) {
         this.checkTotal = checkTotal;
     }

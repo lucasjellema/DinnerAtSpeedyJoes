@@ -79,8 +79,6 @@ public class KitchenPollerBean implements TimedObject {
 
     @Schedule(second = "*/5", minute = "*", hour = "*", info = "KitchenPollSchedule")
     public void pollKitchenForReadyMealItems(Timer t) {
-        //System.out.println("Tell the world I am polling the kitchen!!!");
-        //logger.log(Level.SEVERE, "Polling Kitchen");
         fetchReadyMealItemsFromKitchen();
     }
 
@@ -92,7 +90,8 @@ public class KitchenPollerBean implements TimedObject {
             conn = dataSource.getConnection();
             // fetch the prepared dishes
             PreparedStatement findReadyUndeliveredMealItemsStatement =
-                conn.prepareStatement("SELECT menu_item, extract( second from (end_time - start_time)) as preparation_duration, price , upper(APPETIZER_OR_MAIN) as aOrM , table_Number " +
+                conn.prepareStatement("SELECT menu_item, extract( second from (end_time - start_time)) as preparation_duration" +
+                                      ", price , upper(APPETIZER_OR_MAIN) as aOrM , table_Number " +
                                       "from kitchen_orders where retrieved_yn='N' and end_time is not null");
 
             String updateRetrievedReadyDishesSQL =
@@ -125,7 +124,8 @@ public class KitchenPollerBean implements TimedObject {
                 sleep(200);
                 conversationLogger.enterLog("Mid Office", 2, "Fetched Meal from Kitchen", 200);
 
-                publishMealItemToJMS(menuItem, tableNumber, appetizerOrMain, ((BigDecimal)price).floatValue(), Math.round(1000*((BigDecimal)duration).floatValue()), conversationLogger,3);
+                publishMealItemToJMS(menuItem, tableNumber, appetizerOrMain, ((BigDecimal)price).floatValue()
+                                     , Math.round(1000*((BigDecimal)duration).floatValue()), conversationLogger,3);
 
             } //while
             result = "done set processing";
@@ -160,7 +160,8 @@ public class KitchenPollerBean implements TimedObject {
     private TextMessage msg;
 
 
-    private void publishMealItemToJMS(String menuItem, String tableNumber, String aOrM, float price, int duration, ConversationLogger conversationLogger, int level) throws javax.jms.JMSException {
+    private void publishMealItemToJMS(String menuItem, String tableNumber, String aOrM, float price, int duration
+                                      , ConversationLogger conversationLogger, int level) throws javax.jms.JMSException {
         //JMS publication
         try {
 
@@ -196,24 +197,19 @@ public class KitchenPollerBean implements TimedObject {
             qcon = connectionFactory.createQueueConnection();
             qsession = qcon.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
             //qsender = qsession.createSender((javax.jms.Queue) dest);
-            msg = qsession.createTextMessage();
-            qcon.start();
-            msg.setText(message);
-            
+            qcon.start();          
             MapMessage mm= qsession.createMapMessage();
             mm.setString("tableNumber", tableNumber);
             mm.setString("menuItem", menuItem);
             mm.setString("AorM", aOrM);
             mm.setInt("duration", duration);
             mm.setFloat("price", price);
-
-
-            sleep(900);
-            conversationLogger.enterLog("Mid Office", level, "Handed Cooked Meal Item Off to Waiters Station",
-                                        900);
             mm.setString("trace", conversationLogger.toJSON().toString());
             MessageProducer producer = qsession.createProducer(dest);
             producer.send(mm);
+            sleep(900);
+            conversationLogger.enterLog("Mid Office", level, "Handed Cooked Meal Item Off to Waiters Station",
+                                        900);
         } finally {
             if (qcon != null) {
                 try {

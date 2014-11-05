@@ -6,9 +6,20 @@
 
 //var wsUri = "ws://" + document.location.host + document.location.pathname + "mediatorendpoint";
 var wsUri = "ws://" + document.location.host + "/DinnerAtSpeedyJoes-Asynch/mediatorendpoint";
-
-
 var websocket = new WebSocket(wsUri);
+
+function onMessage(evt) {
+ console.log("received over websockets: " + evt.data);
+ console.log("looked for appetizer index of: "+ evt.data.indexOf("appetizerOrMain"));
+ var index = evt.data.indexOf("appetizer");
+ writeToScreen(evt.data);
+    // process json meal item delivery event
+    if (index>1) {
+         console.log("found appetizer index of: "+ evt.data.indexOf("appetizer"));
+    
+      handleMealItemDelivery( evt.data);
+    }
+}
 
 websocket.onerror = function(evt) { onError(evt) };
 
@@ -39,12 +50,4 @@ function sendText(json) {
     websocket.send(json);
 }
                 
-function onMessage(evt) {
-    console.log("received: " + evt.data);
-    writeToScreen(evt.data);
-    // process json meal item delivery event
-    if (evt.data.indexOf("appetizerOrMain")>-1) {
-      handleMealItemDelivery( evt.data);
-    }
-}
 

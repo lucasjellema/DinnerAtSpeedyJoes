@@ -41,27 +41,17 @@ public class SocketMediator {
 
     @OnMessage
     public String onMessage(String message, Session session) {
-        System.out.println("message received " + message);
-        String tableNumber= "";
-        JSONObject jObj;
+        System.out.println("try to open websocket");
+        
         try {
-            jObj = new JSONObject(message);
-            tableNumber= (String) jObj.get("tableNumber");
+            JSONObject jObj = new JSONObject(message);
+            String tableNumber= (String) jObj.get("tableNumber");
+            System.out.println("opened websocket channel with table "+tableNumber);
+            // link up session with tableNumber so we know which session to inform when a meal item ready event occurs for that table
+            peerTableMap.put(tableNumber, session);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        // link up session with tableNumber so we know which session to inform when a meal item ready event occurs for that table
-        peerTableMap.put(tableNumber, session);
-//
-//        for (Session peer : peers) {
-//            if (!peer.equals(session)) {
-//                try {
-//                    peer.getBasicRemote().sendText(message + " - retweet");
-//                } catch (IOException ex) {
-//                    Logger.getLogger(SocketMediator.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        }
         return "message was received and processed: "+message;
     }
 
@@ -71,7 +61,6 @@ public class SocketMediator {
     }
 
     public void onTimeEvent(@Observes @WBTimeEvent TimeEvent event) {
-        System.out.println("Time Event observed by SocketMediator " + event.getTimestamp());
         for (Session peer : peers) {
             try {
                 peer.getBasicRemote().sendText("Time event: " + event.getTimestamp());
@@ -82,7 +71,7 @@ public class SocketMediator {
     }// onTimeEvent
 
  
-    public void onMailItemReadyEvent(@Observes @JoesMealItemReadyEvent MealItemReadyEvent event) {
+    public void onMealItemReadyEvent(@Observes @JoesMealItemReadyEvent MealItemReadyEvent event) {
         System.out.println("Meal Item Ready Event observed by SocketMediator " + event.getAppetizer()+" for table "+event.getTableNumber());
         ConversationLogger logger = new ConversationLogger(event.getJsonTrace());
         logger.enterLog("Waiter", logger.getHighestLevel()+1, "Taken cooked meal item to table ", 500);
@@ -104,8 +93,12 @@ public class SocketMediator {
         Session s = peerTableMap.get(event.getTableNumber());
             try {
                 s.getBasicRemote().sendText(json );
+                System.out.println("send meal item to table "+event.getTableNumber());
             } catch (IOException e) {
+                e.printStackTrace();
             }
+        } else {
+            System.out.println("Could not find table socket for meal item ");
         }
     }//onMailItemReadyEvent
 

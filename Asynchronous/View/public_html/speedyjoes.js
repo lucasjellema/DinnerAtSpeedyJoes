@@ -1,10 +1,18 @@
-        
+
 function handleMealItemDelivery( json) {
-   var mealDiv = document.getElementById("mealDiv");
    var mealItem =  JSON.parse(json);
+   handleMealItemObjectDelivery(mealItem);
+}
+
+        
+function handleMealItemObjectDelivery( mealItem) {
+   var mealDiv = document.getElementById("mealDiv");
    dinner.push({ "menuItem":mealItem.menuItem, "price":mealItem.price});
    var arrayLength = dinner.length;
    mealDiv.innerHTML = "Dinner is being served... <br/>"
+ 
+   writeTrace(mealItem.trace);
+
    var checkTotal = 0;
    for (var i = 0; i < arrayLength; i++) {
      mealDiv.innerHTML += dinner[i].menuItem+" ( \u20AC "+ dinner[i].price+ ") <br>";
@@ -12,8 +20,7 @@ function handleMealItemDelivery( json) {
    }//for
    mealDiv.innerHTML += "<br/>(running)Check Total: "+" ( \u20AC "+ checkTotal+ ") <br>";
    document.getElementById("message").innerHTML = json;     
-   writeTrace(mealItem.trace);
-}
+x}
 
 // The 17 colors from the HTML specification are: aqua, black, blue, fuchsia, gray, green, lime, maroon, navy, olive, orange, purple, red, silver, teal, white, and yellow.
 var colors = ["blue","red","green","yellow","purple","orange","gray","black", "olive","silver" ];
